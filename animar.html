@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <title>Креативные Фигуры</title>
+  <style>
+    body, html {
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      background-color: #0f172a;
+    }
+    canvas {
+      display: block;
+    }
+  </style>
+</head>
+<body>
+  <canvas id="canvas"></canvas>
+
+  <script>
+    const canvas = document.getElementById("canvas");
+    const ctx = canvas.getContext("2d");
+
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+
+    let mouse = { x: null, y: null };
+
+    window.addEventListener("mousemove", (e) => {
+      mouse.x = e.x;
+      mouse.y = e.y;
+    });
+
+    class Figure {
+      constructor(x, y, dx, dy, size, color) {
+        this.x = x;
+        this.y = y;
+        this.dx = dx;
+        this.dy = dy;
+        this.size = size;
+        this.color = color;
+        this.shape = Math.random() > 0.5 ? 'circle' : 'square';
+      }
+
+      draw() {
+        ctx.fillStyle = this.color;
+        if (this.shape === 'circle') {
+          ctx.beginPath();
+          ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2, false);
+          ctx.fill();
+        } else {
+          ctx.fillRect(this.x - this.size / 2, this.y - this.size / 2, this.size, this.size);
+        }
+      }
+
+      update() {
+        // реакция на мышь
+        const dxMouse = this.x - mouse.x;
+        const dyMouse = this.y - mouse.y;
+        const distance = Math.sqrt(dxMouse ** 2 + dyMouse ** 2);
+
+        if (distance < 100) {
+          this.dx += dxMouse / 100;
+          this.dy += dyMouse / 100;
+        }
+
+        // отскок от стен
+        if (this.x + this.size > canvas.width || this.x - this.size < 0) this.dx *= -1;
+        if (this.y + this.size > canvas.height || this.y - this.size < 0) this.dy *= -1;
+
+        this.x += this.dx;
+        this.y += this.dy;
+
+        // немного тормозим
+        this.dx *= 0.98;
+        this.dy *= 0.98;
+
+        this.draw();
+      }
+    }
+
+    const colors = ["#38bdf8", "#f472b6", "#facc15", "#34d399"];
+    const figures = [];
+
+    for (let i = 0; i < 50; i++) {
+      const size = Math.random() * 20 + 10;
+      const x = Math.random() * (canvas.width - size * 2) + size;
+      const y = Math.random() * (canvas.height - size * 2) + size;
+      const dx = (Math.random() - 0.5) * 2;
+      const dy = (Math.random() - 0.5) * 2;
+      const color = colors[Math.floor(Math.random() * colors.length)];
+      figures.push(new Figure(x, y, dx, dy, size, color));
+    }
+
+    function animate() {
+      requestAnimationFrame(animate);
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      figures.forEach(f => f.update());
+    }
+
+    animate();
+
+    window.addEventListener("resize", () => {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    });
+  </script>
+</body>
+</html>
